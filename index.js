@@ -14,34 +14,32 @@ const PORT = process.env.PORT || 10000;
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// 🔔 Webhook route
 app.post('/paypal-webhook', async (req, res) => {
-  const { orderId, email, items, total } = req.body;
+  const { orderId, email, items, total, shipping } = req.body;
 
-  console.log('Received order:', { orderId, email, items, total });
+  console.log('Received order:', { orderId, email, items, total, shipping });
 
-  // 🔄 Send to Google Sheets
   try {
     await fetch('https://script.google.com/macros/s/AKfycby6w--CWNdH2gTPEjccSBHTpnwLHIykOGTNvldNqLhwd0pB6_jLmvzpW2NtnThVGa4b/exec', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, items, total })
+      body: JSON.stringify({ email, items, total, shipping })
     });
     console.log('✅ Google Sheet updated');
   } catch (err) {
     console.error('❌ Google Sheets error:', err);
   }
 
-  // 📬 Send Email via EmailJS
   try {
     await emailjs.send(
-      'service_lkx8hde',       // service ID
-      'template_j6e2hbv',       // template ID
+      'service_lkx8hde',
+      'template_j6e2hbv',
       {
         to_email: email,
         order_id: orderId,
         item_list: items.join(', '),
-        total_cost: total
+        total_cost: total,
+        shipping_address: shipping
       },
       {
         publicKey: 'X5EyJsvtspdoQsts0'
@@ -55,12 +53,10 @@ app.post('/paypal-webhook', async (req, res) => {
   res.status(200).send('Webhook processed.');
 });
 
-// Serve frontend
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Start server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

@@ -10,7 +10,10 @@
   <h1>JXMTechStore</h1>
   <p>Test 1TB SSD for $0.01</p>
 
-  <div id="paypal-button-container"></div>
+  <label for="shipping">Shipping Address:</label><br>
+  <textarea id="shipping" name="shipping" rows="4" cols="40" required></textarea>
+
+  <div id="paypal-button-container" style="margin-top: 20px;"></div>
 
   <script>
     paypal.Buttons({
@@ -24,8 +27,11 @@
         });
       },
       onApprove: function(data, actions) {
+        const shipping = document.getElementById('shipping').value;
+
         return actions.order.capture().then(function(details) {
           alert('Transaction completed by ' + details.payer.name.given_name);
+
           fetch('/paypal-webhook', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -33,7 +39,8 @@
               orderId: data.orderID,
               email: details.payer.email_address,
               items: ['1TB SSD'],
-              total: '0.01'
+              total: '0.01',
+              shipping: shipping
             })
           });
         });
