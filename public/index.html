@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>JXMTechStore</title>
   <script src="https://www.paypal.com/sdk/js?client-id=AXA5VdcfgAJviRdaM96UbzTpP0h34VkntrrocKWULIEimkZUVqjer5HWiOuQDKHOAnX3kZQVorQneOIq&currency=USD"></script>
+  <script type="text/javascript" src="https://cdn.emailjs.com/dist/email.min.js"></script>
 </head>
 <body>
   <h1>JXMTechStore</h1>
@@ -16,6 +17,8 @@
   <div id="paypal-button-container" style="margin-top: 20px;"></div>
 
   <script>
+    emailjs.init("X5EyJsvtspdoQsts0");
+
     paypal.Buttons({
       createOrder: function(data, actions) {
         return actions.order.create({
@@ -32,6 +35,7 @@
         return actions.order.capture().then(function(details) {
           alert('Transaction completed by ' + details.payer.name.given_name);
 
+          // Send data to backend for Google Sheets
           fetch('/paypal-webhook', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -42,6 +46,19 @@
               total: '0.01',
               shipping: shipping
             })
+          });
+
+          // Send email directly from frontend
+          emailjs.send("service_lkx8hde", "template_j6e2hbv", {
+            to_email: details.payer.email_address,
+            order_id: data.orderID,
+            item_list: '1TB SSD',
+            total_cost: '0.01',
+            shipping_address: shipping
+          }).then(function(response) {
+            console.log("✅ Email sent", response.status, response.text);
+          }, function(error) {
+            console.error("❌ Email failed", error);
           });
         });
       }
