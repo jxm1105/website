@@ -3,7 +3,6 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fetch from 'node-fetch';
-import emailjs from '@emailjs/nodejs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -28,26 +27,6 @@ app.post('/paypal-webhook', async (req, res) => {
     console.log('✅ Google Sheet updated');
   } catch (err) {
     console.error('❌ Google Sheets error:', err);
-  }
-
-  try {
-    await emailjs.send(
-      'service_lkx8hde',
-      'template_j6e2hbv',
-      {
-        to_email: email,
-        order_id: orderId,
-        item_list: items.join(', '),
-        total_cost: total,
-        shipping_address: shipping
-      },
-      {
-        publicKey: 'X5EyJsvtspdoQsts0'
-      }
-    );
-    console.log('✅ Email sent');
-  } catch (err) {
-    console.error('❌ EmailJS error:', err);
   }
 
   res.status(200).send('Webhook processed.');
